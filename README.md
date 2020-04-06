@@ -15,3 +15,17 @@ $ python -m spacy download en_core_web_sm
 $ pip install sparqlwrapper
 ```
 
+### Example Output
+```
+--------------------------
+-----Class Terms List-----
+--------------------------
+1 . Term =  Sound
+2 . Term =  Device
+3 . Term =  Agent
+4 . Term =  List
+5 . Term =  Hospital
+6 . Term =  Town
+7 . Term =  Place
+```
+
