@@ -1,9 +1,37 @@
 import spacy
+from SPARQLWrapper import SPARQLWrapper, JSON
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en_core_web_sm")
 
-print("hey")
+sparql = SPARQLWrapper("http://dbpedia.org/sparql")
+
+
+def create_class_query(param):
+    query = ("""
+        PREFIX rdfs: <http://www.w3.org/2000/01/rdf-schema#>
+        PREFIX rdf: <http://www.w3.org/1999/02/22-rdf-syntax-ns#>
+        PREFIX dbo: <http://dbpedia.org/ontology/>
+        PREFIX dbr: <http://dbpedia.org/resource/>
+        PREFIX dbp: <http://dbpedia.org/property/>
+
+        SELECT ?label
+        WHERE {
+            dbo:%s a ?label
+        }
+    """ % param.title())
+
+    return query
+
+
+def start_query(myTerm):
+    query = create_class_query(myTerm)
+    sparql.setQuery(query)
+    sparql.setReturnFormat(JSON)
+    result = sparql.query().convert()
+
+    return result
+
 
 # Example scenario text is taken from "Scientific American: Feature Article: The Semantic Web: May 2001
 # by TIM BERNERS-LEE, JAMES HENDLER and ORA LASSILA"
@@ -38,6 +66,7 @@ doc = nlp(text)
 
 termList = []
 
+# parse terms
 for entity in doc.noun_chunks:
     # check for pronouns
     if entity.root.pos_ != "PRON":
@@ -48,7 +77,23 @@ for entity in doc.noun_chunks:
             # add term to the term list
             termList.append(myTerm)
 
+# analyze parsed terms
+# find the terms whose entity of type is class
+# and add them to another list called classTermList
+classTermList = []
 
-print("----------List----------\n------------------------")
+# print("----------List----------\n------------------------")
 for term in termList:
-    print(term)
+    # print(term.title())
+    results = start_query(term)
+    for result in results["results"]["bindings"]:
+        # print(term.title(), " is = ", result["label"]["value"])
+        if term.title() not in classTermList:
+            classTermList.append(term.title())
+
+# print class terms in the given text
+print("--------------------------\n-----Class Terms List-----\n--------------------------")
+i = 1
+for classTerm in classTermList:
+    print(i, ". Term = ", classTerm)
+    i += 1
