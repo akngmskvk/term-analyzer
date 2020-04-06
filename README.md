@@ -15,7 +15,21 @@ $ python -m spacy download en_core_web_sm
 $ pip install sparqlwrapper
 ```
 
-### Example Output
+### Example Outputs
+```
+--------------------------
+--------Terms List--------
+--------------------------
+System ,  Beatles ,  Pete ,  Phone ,  Sound ,  Message ,  Device ,  Control ,  Sister ,  Lucy ,  Line ,
+Office ,  Mom , Specialist ,  Series ,  Session ,  Agent ,  Appointment ,  Chauffeuring ,  Browser ,
+Information ,  Treatment ,  List , Provider ,  One ,  Plan ,  Insurance ,  Radius ,  Home ,  Rating ,
+Service ,  Match ,  Time ,  Site ,  Schedule ,  Keyword , Term ,  Semantic , Meaning ,  Web ,  Minute ,
+Hospital ,  Town ,  Place ,  Middle ,  Hour ,  Search ,  Preference , Location ,  Trust ,  Context ,
+Task ,  Certificate ,  Datum ,  Clinic ,  Note ,  Couple ,  Problem ,  Therapist ,  Status , Mean ,
+Details ,  Assent ,  Moment ,  Detail
+
+```
+
 ```
 --------------------------
 -----Class Terms List-----
