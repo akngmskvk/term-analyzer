@@ -2,6 +2,7 @@ import spacy, requests
 from SPARQLWrapper import SPARQLWrapper, JSON
 from bs4 import BeautifulSoup
 from tabulate import tabulate
+from neo4j import GraphDatabase
 
 # Load English tokenizer, tagger, parser, NER and word vectors
 nlp = spacy.load("en_core_web_sm")
@@ -42,7 +43,8 @@ def create_dict(text, rootText, type, index, count):
                  'index': index,
                  'count': count,
                  'dbpediaURL': "",
-                 'entityOfType': ""})
+                 'entityOfType': "",
+                 'rdfURL': ""})
 
 
 def get_dbpedia_url_of_term(term):
@@ -58,6 +60,15 @@ def get_entity_of_type(term):
     # print("Term = ", term, ", An entity of type = ", entityOfType)
 
     return entityOfType
+
+
+def get_rdf_xml_url_of_term(term):
+    resp = requests.get(get_dbpedia_url_of_term(term))
+    resp.raise_for_status()
+    soupSource = BeautifulSoup(resp.text, "html.parser")
+    url = soupSource.find("link", attrs={"type": "application/rdf+xml"})['href']
+
+    return url
 
 
 # Example scenario text is taken from "Scientific American: Feature Article: The Semantic Web: May 2001
@@ -127,11 +138,12 @@ print("Parsing terms...DONE")
 
 
 # find entity of type of terms
-print("Finding entity of type of terms...")
+print("Finding entity of type & RDF/XML URL of terms...")
 for dict_item in termList:
     try:
         dict_item['entityOfType'] = get_entity_of_type(dict_item['term'])
         dict_item['dbpediaURL'] = get_dbpedia_url_of_term(dict_item['term'])
+        dict_item['rdfURL'] = get_rdf_xml_url_of_term(dict_item['term'])
     except requests.exceptions.HTTPError:
         print("Term = ", dict_item['term'], " does not have an entity of type!")
 print("Finding entity of type of terms...DONE")
@@ -143,3 +155,20 @@ header = termList[0].keys()
 rows = [x.values() for x in termList]
 print(tabulate(rows, header))
 print("\nPrinting all the stored data...DONE\n")
+
+
+print("Importing RDF data to Neo4j Graph Database...")
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j", "123456"))
+
+
+def add_rdf(tx, uri):
+    tx.run("""CALL semantics.importRDF("%s","RDF/XML")""" % uri)
+
+
+with driver.session() as session:
+    for dict_item in termList:
+        if dict_item['rdfURL'] != "":
+            session.write_transaction(add_rdf, dict_item['rdfURL'])
+
+driver.close()
+print("Importing RDF data to Neo4j Graph Database...DONE")

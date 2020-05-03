@@ -2,6 +2,7 @@
 * Parse the terms from the given text
 * Find the entity of type of terms from DBPedia
 * Store incoming data and their statistics
+* Import data to Neo4j graph database
 
 ## Installation
 #### spaCy
@@ -29,83 +30,100 @@ Pretty-print tabular data in Python, a library and a command-line utility.
 $ pip install tabulate
 ```
 
+#### Neo4j Python Driver
+The Neo4j Python driver is officially supported by Neo4j and connects to the database using the binary protocol. It aims to be minimal, while being idiomatic to Python.
+```
+$ pip install neo4j
+```
+
+#### Neo4j Server
+Since Neo Semantics does not fully support Neo4j 4.x, Neo4j 3.5.17 is used.
+Also used plugins:
+  - APOC 3.5.0.11
+  - Neo Semantics 3.5.0.4
+  - Neo4j GraphQL 3.5.15.5
+
+
 ## Example Output
 **term:** Root of the text which is parsed with spaCy.  
 **dbpediaURL:** DBPedia URL of the term (if exists).  
+**rdfURL:** RDF/XML URL of the term (if exists).  
 **index:** The index of the term within the given document.  
 **count:** The count of the term within the given document.  
 **text:** The text which is parsed with spaCy.  
 **entityOfType:** An entity of type of term in DBPedia.  
 **type:** Type of the parsed text.
 ```
-term                 dbpediaURL                                         index    count  text                                    entityOfType             type
--------------------  -----------------------------------------------  -------  -------  --------------------------------------  -----------------------  ------
-Beatles              http://dbpedia.org/resource/Beatles                    8        2  Beatles                                 organisation             PROPN
-We Can Work It Out   http://dbpedia.org/resource/We_Can_Work_It_Out        13        1  We Can Work It Out                      musical work             VERB
-Pete                 http://dbpedia.org/resource/Pete                      23       15  Pete                                    Thing                    PROPN
-Lucy                 http://dbpedia.org/resource/Lucy                      53        8  Lucy                                    name                     PROPN
-Mom                  http://dbpedia.org/resource/Mom                      136        4  Mom                                     Thing                    PROPN
-University Hospital  http://dbpedia.org/resource/University_Hospital      268        1  University Hospital                     hospital                 PROPN
-System               http://dbpedia.org/resource/System                     3        1  The entertainment system                Thing                    NOUN
-Phone                http://dbpedia.org/resource/Phone                     28        1  his phone                               device                   NOUN
-Sound                http://dbpedia.org/resource/Sound                     31        1  the sound                               Thing                    NOUN
-Message              http://dbpedia.org/resource/Message                   36        1  a message                               organisation             NOUN
-Device               http://dbpedia.org/resource/Device                    42        1  all the other local devices             MusicalPerformer         NOUN
-Control              http://dbpedia.org/resource/Control                   47        1  a volume control                        Thing                    NOUN
-Sister               http://dbpedia.org/resource/Sister                    51        1  His sister                              mammal                   NOUN
-Line                 http://dbpedia.org/resource/Line                      58        1  the line                                Thing                    NOUN
-Office               http://dbpedia.org/resource/Office                    63        2  the doctor's office                     Thing                    NOUN
-Specialist           http://dbpedia.org/resource/Specialist                71        1  a specialist                            Thing                    NOUN
-Series               http://dbpedia.org/resource/Series                    78        1  a series                                Thing                    NOUN
-Session              http://dbpedia.org/resource/Session                   83        1  physical therapy sessions               Thing                    NOUN
-Agent                http://dbpedia.org/resource/Agent                     95       12  my agent                                Creation103129123        NOUN
-Appointment          http://dbpedia.org/resource/Appointment               99        2  the appointments                        Thing                    NOUN
-Chauffeuring                                                              109        1  the chauffeuring                                                 NOUN
-Browser              http://dbpedia.org/resource/Browser                  128        1  her handheld Web browser                Thing                    NOUN
-Information          http://dbpedia.org/resource/Information              134        1  information                             Thing                    NOUN
-Treatment            http://dbpedia.org/resource/Treatment                139        1  Mom's prescribed treatment              Thing                    NOUN
-List                 http://dbpedia.org/resource/List                     150        3  several lists                           Thing                    NOUN
-Provider             http://dbpedia.org/resource/Provider                 152        4  providers                               Thing                    NOUN
-One                  http://dbpedia.org/resource/One                      158        1  the ones                                Integer113728499         NOUN
-Plan                 http://dbpedia.org/resource/Plan                     161        3  -plan                                   Thing                    NOUN
-Insurance            http://dbpedia.org/resource/Insurance                165        1  Mom's insurance                         software                 NOUN
-Radius               http://dbpedia.org/resource/Radius                   169        1  a 20-mile radius                        Thing                    NOUN
-Home                 http://dbpedia.org/resource/Home                     173        1  her home                                Thing                    NOUN
-Rating               http://dbpedia.org/resource/Rating                   177        1  a rating                                Thing                    NOUN
-Service              http://dbpedia.org/resource/Service                  186        1  trusted rating services                 Thing                    NOUN
-Match                http://dbpedia.org/resource/Match                    195        1  a match                                 software                 NOUN
-Time                 http://dbpedia.org/resource/Time                     200        3  available appointment times             Thing                    NOUN
-Site                 http://dbpedia.org/resource/Site                     212        1  their Web sites                         Thing                    NOUN
-Schedule             http://dbpedia.org/resource/Schedule                 222        1  Lucy's busy schedules                   Thing                    NOUN
-Keyword              http://dbpedia.org/resource/Keyword                  227        1  The emphasized keywords                 Thing                    NOUN
-Term                 http://dbpedia.org/resource/Term                     229        1  terms                                   Thing                    NOUN
-Semantic             http://dbpedia.org/resource/Semantic                 231        1  whose semantics                         book                     NOUN
-Meaning              http://dbpedia.org/resource/Meaning                  234        1  meaning                                 Thing                    NOUN
-Web                  http://dbpedia.org/resource/Web                      245        1  the Semantic Web                        Thing                    PROPN
-Minute               http://dbpedia.org/resource/Minute                   252        1  a few minutes                           organisation             NOUN
-Hospital             http://dbpedia.org/resource/Hospital                 268        1  University Hospital                     university               PROPN
-Town                 http://dbpedia.org/resource/Town                     275        1  town                                    settlement               NOUN
-Place                http://dbpedia.org/resource/Place                    279        1  Mom's place                             Thing                    NOUN
-Middle               http://dbpedia.org/resource/Middle                   289        1  the middle                              Thing                    NOUN
-Hour                 http://dbpedia.org/resource/Hour                     292        1  rush hour                               organisation             NOUN
-Search               http://dbpedia.org/resource/Search                   302        1  the search                              Thing                    NOUN
-Preference           http://dbpedia.org/resource/Preference               306        1  stricter preferences                    Thing                    NOUN
-Location             http://dbpedia.org/resource/Location                 308        1  location                                Thing                    NOUN
-Trust                http://dbpedia.org/resource/Trust                    318        1  complete trust                          Thing                    NOUN
-Context              http://dbpedia.org/resource/Context                  325        1  the context                             Thing                    NOUN
-Task                 http://dbpedia.org/resource/Task                     330        1  the present task                        Thing                    NOUN
-Certificate          http://dbpedia.org/resource/Certificate              337        1  access certificates                     Thing                    NOUN
-Datum                http://dbpedia.org/resource/Datum                    342        1  the data                                Thing                    NOUN
-Clinic               http://dbpedia.org/resource/Clinic                   362        1  a much closer clinic                    architectural structure  NOUN
-Note                 http://dbpedia.org/resource/Note                     373        1  two warning notes                       Thing                    NOUN
-Couple               http://dbpedia.org/resource/Couple                   383        1  a couple                                Thing                    NOUN
-Problem              http://dbpedia.org/resource/Problem                  399        1  a problem                               Thing                    NOUN
-Therapist            http://dbpedia.org/resource/Therapist                419        1  physical therapists                     Thing                    NOUN
-Status               http://dbpedia.org/resource/Status                   427        1  Service type and insurance plan status  Thing                    NOUN
-Mean                 http://dbpedia.org/resource/Mean                     432        1  other means                             Thing                    NOUN
-Details              http://dbpedia.org/resource/Details                  443        1  "(Details                               Thing                    PROPN
-Assent               http://dbpedia.org/resource/Assent                   451        1  her assent                              Thing                    NOUN
-Moment               http://dbpedia.org/resource/Moment                   456        1  about the same moment                   MusicalComposition       NOUN
-Detail               http://dbpedia.org/resource/Detail                   465        2  the details                             Thing                    NOUN
+term                 type    entityOfType             text                                      count  dbpediaURL                                       rdfURL                                            index
+-------------------  ------  -----------------------  --------------------------------------  -------  -----------------------------------------------  ----------------------------------------------  -------
+Beatles              PROPN   organisation             Beatles                                       2  http://dbpedia.org/resource/Beatles              http://dbpedia.org/data/The_Beatles.rdf               8
+We Can Work It Out   VERB    musical work             We Can Work It Out                            1  http://dbpedia.org/resource/We_Can_Work_It_Out   http://dbpedia.org/data/We_Can_Work_It_Out.rdf       13
+Pete                 PROPN   Thing                    Pete                                         15  http://dbpedia.org/resource/Pete                 http://dbpedia.org/data/Pete.rdf                     23
+Lucy                 PROPN   name                     Lucy                                          8  http://dbpedia.org/resource/Lucy                 http://dbpedia.org/data/Lucy.rdf                     53
+Mom                  PROPN   Thing                    Mom                                           4  http://dbpedia.org/resource/Mom                  http://dbpedia.org/data/Mother.rdf                  136
+University Hospital  PROPN   hospital                 University Hospital                           1  http://dbpedia.org/resource/University_Hospital  http://dbpedia.org/data/Teaching_hospital.rdf       268
+System               NOUN    Thing                    The entertainment system                      1  http://dbpedia.org/resource/System               http://dbpedia.org/data/System.rdf                    3
+Phone                NOUN    device                   his phone                                     1  http://dbpedia.org/resource/Phone                http://dbpedia.org/data/Telephone.rdf                28
+Sound                NOUN    Thing                    the sound                                     1  http://dbpedia.org/resource/Sound                http://dbpedia.org/data/Sound.rdf                    31
+Message              NOUN    organisation             a message                                     1  http://dbpedia.org/resource/Message              http://dbpedia.org/data/Message.rdf                  36
+Device               NOUN    MusicalPerformer         all the other local devices                   1  http://dbpedia.org/resource/Device               http://dbpedia.org/data/Device.rdf                   42
+Control              NOUN    Thing                    a volume control                              1  http://dbpedia.org/resource/Control              http://dbpedia.org/data/Control.rdf                  47
+Sister               NOUN    mammal                   His sister                                    1  http://dbpedia.org/resource/Sister               http://dbpedia.org/data/Sister.rdf                   51
+Line                 NOUN    Thing                    the line                                      1  http://dbpedia.org/resource/Line                 http://dbpedia.org/data/Line.rdf                     58
+Office               NOUN    Thing                    the doctor's office                           2  http://dbpedia.org/resource/Office               http://dbpedia.org/data/Office.rdf                   63
+Specialist           NOUN    Thing                    a specialist                                  1  http://dbpedia.org/resource/Specialist           http://dbpedia.org/data/Specialist.rdf               71
+Series               NOUN    Thing                    a series                                      1  http://dbpedia.org/resource/Series               http://dbpedia.org/data/Series.rdf                   78
+Session              NOUN    Thing                    physical therapy sessions                     1  http://dbpedia.org/resource/Session              http://dbpedia.org/data/Session.rdf                  83
+Agent                NOUN    Creation103129123        my agent                                     12  http://dbpedia.org/resource/Agent                http://dbpedia.org/data/Agent.rdf                    95
+Appointment          NOUN    Thing                    the appointments                              2  http://dbpedia.org/resource/Appointment          http://dbpedia.org/data/Appointment.rdf              99
+Chauffeuring         NOUN                             the chauffeuring                              1                                                                                                       109
+Browser              NOUN    Thing                    her handheld Web browser                      1  http://dbpedia.org/resource/Browser              http://dbpedia.org/data/Browser.rdf                 128
+Information          NOUN    Thing                    information                                   1  http://dbpedia.org/resource/Information          http://dbpedia.org/data/Information.rdf             134
+Treatment            NOUN    Thing                    Mom's prescribed treatment                    1  http://dbpedia.org/resource/Treatment            http://dbpedia.org/data/Treatment.rdf               139
+List                 NOUN    Thing                    several lists                                 3  http://dbpedia.org/resource/List                 http://dbpedia.org/data/List.rdf                    150
+Provider             NOUN    Thing                    providers                                     4  http://dbpedia.org/resource/Provider             http://dbpedia.org/data/Provider.rdf                152
+One                  NOUN    Integer113728499         the ones                                      1  http://dbpedia.org/resource/One                  http://dbpedia.org/data/1_(number).rdf              158
+Plan                 NOUN    Thing                    -plan                                         3  http://dbpedia.org/resource/Plan                 http://dbpedia.org/data/Plan.rdf                    161
+Insurance            NOUN    software                 Mom's insurance                               1  http://dbpedia.org/resource/Insurance            http://dbpedia.org/data/Insurance.rdf               165
+Radius               NOUN    Thing                    a 20-mile radius                              1  http://dbpedia.org/resource/Radius               http://dbpedia.org/data/Radius.rdf                  169
+Home                 NOUN    Thing                    her home                                      1  http://dbpedia.org/resource/Home                 http://dbpedia.org/data/Home.rdf                    173
+Rating               NOUN    Thing                    a rating                                      1  http://dbpedia.org/resource/Rating               http://dbpedia.org/data/Rating.rdf                  177
+Service              NOUN    Thing                    trusted rating services                       1  http://dbpedia.org/resource/Service              http://dbpedia.org/data/Service.rdf                 186
+Match                NOUN    software                 a match                                       1  http://dbpedia.org/resource/Match                http://dbpedia.org/data/Match.rdf                   195
+Time                 NOUN    Thing                    available appointment times                   3  http://dbpedia.org/resource/Time                 http://dbpedia.org/data/Time.rdf                    200
+Site                 NOUN    Thing                    their Web sites                               1  http://dbpedia.org/resource/Site                 http://dbpedia.org/data/Site.rdf                    212
+Schedule             NOUN    Thing                    Lucy's busy schedules                         1  http://dbpedia.org/resource/Schedule             http://dbpedia.org/data/Schedule.rdf                222
+Keyword              NOUN    Thing                    The emphasized keywords                       1  http://dbpedia.org/resource/Keyword              http://dbpedia.org/data/Keyword.rdf                 227
+Term                 NOUN    Thing                    terms                                         1  http://dbpedia.org/resource/Term                 http://dbpedia.org/data/Term.rdf                    229
+Semantic             NOUN    book                     whose semantics                               1  http://dbpedia.org/resource/Semantic             http://dbpedia.org/data/Semantics.rdf               231
+Meaning              NOUN    Thing                    meaning                                       1  http://dbpedia.org/resource/Meaning              http://dbpedia.org/data/Meaning.rdf                 234
+Web                  PROPN   Thing                    the Semantic Web                              1  http://dbpedia.org/resource/Web                  http://dbpedia.org/data/Web.rdf                     245
+Minute               NOUN    organisation             a few minutes                                 1  http://dbpedia.org/resource/Minute               http://dbpedia.org/data/Minute.rdf                  252
+Hospital             PROPN   university               University Hospital                           1  http://dbpedia.org/resource/Hospital             http://dbpedia.org/data/Hospital.rdf                268
+Town                 NOUN    settlement               town                                          1  http://dbpedia.org/resource/Town                 http://dbpedia.org/data/Town.rdf                    275
+Place                NOUN    Thing                    Mom's place                                   1  http://dbpedia.org/resource/Place                http://dbpedia.org/data/Place.rdf                   279
+Middle               NOUN    Thing                    the middle                                    1  http://dbpedia.org/resource/Middle               http://dbpedia.org/data/Middle.rdf                  289
+Hour                 NOUN    organisation             rush hour                                     1  http://dbpedia.org/resource/Hour                 http://dbpedia.org/data/Hour.rdf                    292
+Search               NOUN    Thing                    the search                                    1  http://dbpedia.org/resource/Search               http://dbpedia.org/data/Searching.rdf               302
+Preference           NOUN    Thing                    stricter preferences                          1  http://dbpedia.org/resource/Preference           http://dbpedia.org/data/Preference.rdf              306
+Location             NOUN    Thing                    location                                      1  http://dbpedia.org/resource/Location             http://dbpedia.org/data/Location.rdf                308
+Trust                NOUN    Thing                    complete trust                                1  http://dbpedia.org/resource/Trust                http://dbpedia.org/data/Trust.rdf                   318
+Context              NOUN    Thing                    the context                                   1  http://dbpedia.org/resource/Context              http://dbpedia.org/data/Context.rdf                 325
+Task                 NOUN    Thing                    the present task                              1  http://dbpedia.org/resource/Task                 http://dbpedia.org/data/Task.rdf                    330
+Certificate          NOUN    Thing                    access certificates                           1  http://dbpedia.org/resource/Certificate          http://dbpedia.org/data/Certificate.rdf             337
+Datum                NOUN    Thing                    the data                                      1  http://dbpedia.org/resource/Datum                http://dbpedia.org/data/Datum.rdf                   342
+Clinic               NOUN    architectural structure  a much closer clinic                          1  http://dbpedia.org/resource/Clinic               http://dbpedia.org/data/Clinic.rdf                  362
+Note                 NOUN    Thing                    two warning notes                             1  http://dbpedia.org/resource/Note                 http://dbpedia.org/data/Note.rdf                    373
+Couple               NOUN    Thing                    a couple                                      1  http://dbpedia.org/resource/Couple               http://dbpedia.org/data/Couple.rdf                  383
+Problem              NOUN    Thing                    a problem                                     1  http://dbpedia.org/resource/Problem              http://dbpedia.org/data/Problem.rdf                 399
+Therapist            NOUN    Thing                    physical therapists                           1  http://dbpedia.org/resource/Therapist            http://dbpedia.org/data/Therapy.rdf                 419
+Status               NOUN    Thing                    Service type and insurance plan status        1  http://dbpedia.org/resource/Status               http://dbpedia.org/data/Status.rdf                  427
+Mean                 NOUN    Thing                    other means                                   1  http://dbpedia.org/resource/Mean                 http://dbpedia.org/data/Mean.rdf                    432
+Details              PROPN   Thing                    "(Details                                     1  http://dbpedia.org/resource/Details              http://dbpedia.org/data/Detail.rdf                  443
+Assent               NOUN    Thing                    her assent                                    1  http://dbpedia.org/resource/Assent               http://dbpedia.org/data/Assent.rdf                  451
+Moment               NOUN    MusicalComposition       about the same moment                         1  http://dbpedia.org/resource/Moment               http://dbpedia.org/data/Moment.rdf                  456
+Detail               NOUN    Thing                    the details                                   2  http://dbpedia.org/resource/Detail               http://dbpedia.org/data/Detail.rdf                  465
 ```
+## Visualization of Neo4j Graph Database
 
+![Image of Neo4j Graph Database](https://github.com/akngmskvk/term-analyzer/blob/master/images/neo4j-graph-1.png)
