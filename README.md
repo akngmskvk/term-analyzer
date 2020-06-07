@@ -130,4 +130,4 @@ Detail               []                                                   http:/
 ```
 ## Visualization of Neo4j Graph Database
 
-![Image of Neo4j Graph Database](https://github.com/akngmskvk/term-analyzer/blob/master/images/neo4j-graph-1.png)
+![Image of Neo4j Graph Database](https://github.com/akngmskvk/term-analyzer/blob/master/images/neo4j-graph-3.png)
